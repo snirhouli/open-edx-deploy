@@ -1,14 +1,19 @@
-/* Test deploy change */
-body {
-  background-color: #f0f9ff !important;  /* light blue background */
+/* Quasar U: vivid test */
+:root {
+  --quasar-primary: #3b82f6;   /* blue */
+  --quasar-accent:  #10b981;   /* green */
 }
+
+body { background: #f8fbff !important; }
 
 header nav {
-  border: 5px solid #ff4500 !important;  /* orange border around top nav */
+  background: var(--quasar-primary) !important;
+  border: 0 !important;
 }
 
-h1, h2, h3 {
-  color: #ff4500 !important; /* bright orange headings */
+header nav a,
+header nav .nav-item a {
+  color: #fff !important;
 }
-/* Tiny visible proof of deployment */
-header nav { outline: 3px solid rgba(255,165,0,.35); }
+
+h1, h2, h3 { color: var(--quasar-accent) !important; }
