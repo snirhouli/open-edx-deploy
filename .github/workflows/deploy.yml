@@ -1,4 +1,5 @@
 name: Deploy Open edX (Tutor)
+
 on:
   push:
     branches: [ main ]
@@ -6,6 +7,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 180   # safety net for the whole job
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,19 +28,22 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
+          command_timeout: 120m   # allow long Tutor image builds
           script: |
-            set -e
+            set -euo pipefail
             cd /home/testacademy/open-edx-deploy
 
-            if [ -f config.yml ]; then
-              cp config.yml ~/.local/share/tutor/config.yml
-            fi
+            # sync Tutor config (if present)
+            [ -f config.yml ] && cp config.yml ~/.local/share/tutor/config.yml
 
-            mkdir -p ~/.local/share/tutor/env/build/openedx/themes
-            rsync -az themes/ ~/.local/share/tutor/env/build/openedx/themes/ || true
-            rsync -az plugins/ ~/.local/share/tutor/plugins/ || true
-
+            # copy theme & plugins into Tutor paths
+            mkdir -p ~/.local/share/tutor/env/build/openedx/themes ~/.local/share/tutor/plugins
+            rsync -az themes/  ~/.local/share/tutor/env/build/openedx/themes/ || true
+            rsync -az plugins/ ~/.local/share/tutor/plugins/                 || true
+            # ensure the theme is enabled
             tutor config save --set THEME_NAME=quasar_university
+
+            # build + restart
             tutor images build openedx
             tutor local start -d
             tutor local restart lms cms
